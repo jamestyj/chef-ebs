@@ -42,8 +42,10 @@ node[:ebs][:raids].each do |device, options|
         if node[:ec2]
           availability_zone node[:ec2][:placement_availability_zone]
         end
-        volume_type options[:piops] ? 'io1' : 'standard'
-        piops options[:piops]
+        if node[:piops]
+          volume_type 'io1'
+          piops options[:piops]
+        end
         action [ :create, :attach ]
       end
     end
