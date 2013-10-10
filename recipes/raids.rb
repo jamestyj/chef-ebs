@@ -119,40 +119,42 @@ node[:ebs][:raids].each do |raid_device, options|
     end
   end
 
-  execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
+  unless node[:ebs][:no_boot_config]
+    execute "/usr/share/mdadm/mkconf force-generate /etc/mdadm/mdadm.conf"
 
-  initrd = "/boot/initrd.img-#{node['kernel']['release']}"
-  geninitrd = false
-  ruby_block "calculate initrd md5" do
-    block do
-      if File.exists?(initrd)
-        initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
-        geninitrd = initmd5 != node['ebs']['initrd_md5']
-        Chef::Log.debug("oldinitrd md5: #{initmd5}")
-      else
-        geninitrd = true
+    initrd = "/boot/initrd.img-#{node['kernel']['release']}"
+    geninitrd = false
+    ruby_block "calculate initrd md5" do
+      block do
+        if File.exists?(initrd)
+          initmd5 = Digest::MD5.hexdigest(IO.read(initrd))
+          geninitrd = initmd5 != node['ebs']['initrd_md5']
+          Chef::Log.debug("oldinitrd md5: #{initmd5}")
+        else
+          geninitrd = true
+        end
       end
     end
-  end
 
-  execute "update-initramfs -u" do
-    action :run
-    only_if { geninitrd }
-  end
-
-  ruby_block "calculate new md5" do
-    block do
-      node.set['ebs']['initrd_md5'] = Digest::MD5.hexdigest(IO.read(initrd))
-      Chef::Log.debug("after initrd md5: #{node['ebs']['initrd_md5']}")
+    execute "update-initramfs -u" do
+      action :run
+      only_if { geninitrd }
     end
-    action :create
-    only_if { geninitrd }
-  end
 
-  template "/etc/rc.local" do
-    source "rc.local.erb"
-    mode 0755
-    owner 'root'
-    group 'root'
+    ruby_block "calculate new md5" do
+      block do
+        node.set['ebs']['initrd_md5'] = Digest::MD5.hexdigest(IO.read(initrd))
+        Chef::Log.debug("after initrd md5: #{node['ebs']['initrd_md5']}")
+      end
+      action :create
+      only_if { geninitrd }
+    end
+
+    template "/etc/rc.local" do
+      source "rc.local.erb"
+      mode 0755
+      owner 'root'
+      group 'root'
+    end
   end
 end
