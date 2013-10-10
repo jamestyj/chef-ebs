@@ -5,10 +5,17 @@ node[:ebs][:volumes].each do |mount_point, options|
   
   # create ebs volume
   if !options[:device] && options[:size]
-    if node[:ebs][:creds][:encrypted]
-      credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+    if node[:ebs][:access_key]
+      credentials = {
+        node.ebs.creds.aki => node[:ebs][:access_key],
+        node.ebs.creds.sak => node[:ebs][:secret_key]
+      }
     else
-      credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      if node[:ebs][:creds][:encrypted]
+        credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node[:ebs][:creds][:item])
+      else
+        credentials = data_bag_item node[:ebs][:creds][:databag], node[:ebs][:creds][:item]
+      end
     end
 
     devices = Dir.glob('/dev/xvd?')
