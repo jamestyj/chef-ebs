@@ -1,10 +1,12 @@
 # xfsdump is not an Amazon Linux package at this moment.
-case node[:platform]
-when 'debian','ubuntu'
-  package 'xfsdump'
-  package 'xfslibs-dev'
-when 'redhat','centos','fedora','amazon'
-  package 'xfsprogs-devel'
+if !node[:ebs][:fstype] or node[:ebs][:fstype] == 'xfs'
+  case node[:platform]
+  when 'debian','ubuntu'
+    package 'xfsdump'
+    package 'xfslibs-dev'
+  when 'redhat','centos','fedora','amazon'
+    package 'xfsprogs-devel'
+  end
 end
 
 include_recipe 'aws'
