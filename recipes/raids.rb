@@ -34,8 +34,8 @@ node[:ebs][:raids].each do |device, options|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
 
-      aws_ebs_volume mount do
-        aws_access_key credentials[node.ebs.creds.aki]
+      vol = aws_ebs_volume mount do
+        aws_access_key        credentials[node.ebs.creds.aki]
         aws_secret_access_key credentials[node.ebs.creds.sak]
         size options[:disk_size]
         device mount
@@ -46,8 +46,9 @@ node[:ebs][:raids].each do |device, options|
           volume_type 'io1'
           piops options[:piops]
         end
-        action [ :create, :attach ]
       end
+      vol.run_action(:create)
+      vol.run_action(:attach)
     end
   end
   node.set[:ebs][:raids][device][:disks] = disks.map { |d| d.sub('/sd', '/xvd') } if !disks.empty?
