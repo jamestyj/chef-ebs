@@ -56,7 +56,9 @@ node[:ebs][:raids].each do |raid_device, options|
   ruby_block "set devices" do
     block do
       node.set[:ebs][:devicetomount] = raid_device
-      node.set[:ebs][:lvm_device] = BlockDevice.lvm_device(raid_device)
+      if options[:uselvm]
+        node.set[:ebs][:lvm_device] = BlockDevice.lvm_device(raid_device)
+      end
       Chef::Log.debug("[set devices block]: devicetomount: #{node[:ebs][:devicetomount]}, lvm_device: #{node[:ebs][:lvm_device]}, uselvm: #{options[:uselvm]}")
       node.save unless Chef::Config[:solo]
     end
