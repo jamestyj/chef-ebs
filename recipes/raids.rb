@@ -39,7 +39,9 @@ node[:ebs][:raids].each do |device, options|
         aws_secret_access_key credentials[node.ebs.creds.sak]
         size options[:disk_size]
         device mount
-        availability_zone node[:ec2][:placement_availability_zone]
+        if node[:ec2]
+          availability_zone node[:ec2][:placement_availability_zone]
+        end
         volume_type options[:piops] ? 'io1' : 'standard'
         piops options[:piops]
         action [ :create, :attach ]
