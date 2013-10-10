@@ -28,7 +28,9 @@ node[:ebs][:volumes].each do |mount_point, options|
       aws_secret_access_key credentials[node.ebs.creds.sak]
       size options[:size]
       device device
-      availability_zone node[:ec2][:placement_availability_zone]
+      if node[:ec2]
+        availability_zone node[:ec2][:placement_availability_zone]
+      end
       action :nothing
     end
     vol.run_action(:create)
