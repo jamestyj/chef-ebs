@@ -31,7 +31,7 @@ node[:ebs][:volumes].each do |mount_point, options|
       if node[:ec2]
         availability_zone node[:ec2][:placement_availability_zone]
       end
-      if node[:piops]
+      if options[:piops]
         volume_type 'io1'
         piops options[:piops]
       end
