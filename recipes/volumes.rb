@@ -1,8 +1,8 @@
 node[:ebs][:volumes].each do |mount_point, options|
-  
+
   # skip volumes that already exist
   next if File.read('/etc/mtab').split("\n").any?{|line| line.match(" #{mount_point} ")}
-  
+
   # create ebs volume
   if !options[:device] && options[:size]
     if node[:ebs][:access_key]
@@ -31,7 +31,10 @@ node[:ebs][:volumes].each do |mount_point, options|
       if node[:ec2]
         availability_zone node[:ec2][:placement_availability_zone]
       end
-      action :nothing
+      if node[:piops]
+        volume_type 'io1'
+        piops options[:piops]
+      end
     end
     vol.run_action(:create)
     vol.run_action(:attach)
